@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="pgp-test-suite.xml" />
+	<munit:test name="pgp-test-suite-EncryptionFlowTest" doc:id="69551807-41d6-4df9-9712-4731f9de87ed" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="1c31493d-018d-4a60-ad4c-092a20a0a969" processor="file:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Write" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="e8830ba1-82bc-40bc-a07e-3345737b3987" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="6e863a0c-bdda-4b90-9458-ff943b1777e2" />
+			<flow-ref doc:name="Flow-ref to EncryptionFlow" doc:id="c150bbd7-5383-4727-931a-e2c589abffd2" name="EncryptionFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="f1a86559-c23f-4bc1-ae39-291375921f2c" is="#[MunitTools::notNullValue()]" expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="pgp-test-suite-DecryptionFlowTest" doc:id="bf7f8553-e35b-4c90-b75d-969614795122" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="6ad453f3-ce4d-4a9a-82d6-d967576d483c" processor="file:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Write" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="76c34c41-ab66-490b-ab35-7a419a6fbb24" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="ac13b6a3-fd6f-4173-8ce9-6bde05def0e0" />
+			<flow-ref doc:name="Flow-ref to DecryptionFlow" doc:id="16ef74da-2a70-4c6a-a00e-a9d7f202a814" name="DecryptionFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="fa61d5ad-742a-473e-b24c-10f353314b13" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

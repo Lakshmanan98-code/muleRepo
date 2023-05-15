@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:crypto="http://www.mulesoft.org/schema/mule/crypto"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/crypto http://www.mulesoft.org/schema/mule/crypto/current/mule-crypto.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="a750c837-c249-49cb-ad25-fb72b5b30072" >
+		<file:connection />
+	</file:config>
+	<crypto:pgp-config name="Crypto_Pgp_encrypt" doc:name="Crypto Pgp" doc:id="d8405aa4-c866-4425-9a2d-33ce7089bc8c" publicKeyring="mule_pub.gpg" >
+		<crypto:pgp-key-infos >
+			<crypto:pgp-asymmetric-key-info keyId="mule123" fingerprint="8A19FC213BBEF52330FC3A64F3867F609424D3CE" />
+		</crypto:pgp-key-infos>
+	</crypto:pgp-config>
+	<crypto:pgp-config name="Crypto_Pgp-decrypt" doc:name="Crypto Pgp" doc:id="77b860e9-5752-4b3c-a0c8-7aa6763adb09" privateKeyring="mule_private.gpg" >
+		<crypto:pgp-key-infos >
+			<crypto:pgp-asymmetric-key-info keyId="mule123" fingerprint="8A19FC213BBEF52330FC3A64F3867F609424D3CE" passphrase="mulesoft123" />
+		</crypto:pgp-key-infos>
+	</crypto:pgp-config>
+	<flow name="EncryptionFlow" doc:id="ccd82fb8-edd3-4552-b17d-d66b0e958f3a" >
+		<scheduler doc:name="Scheduler" doc:id="c8b7cbbb-f7a3-4c27-afa5-1e2c8fa75df0" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="10" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<file:read doc:id="3800bfbe-48c9-4c35-a038-c34867c16080" config-ref="File_Config" path="D:\FlatFile.csv" />
+		<try doc:name="Try" doc:id="47a303ac-1a63-4fb5-9626-6d202d6ac502" >
+			<crypto:pgp-encrypt doc:id="86fc64b7-72e3-45b5-a9c8-a883cbeb5e0e" config-ref="Crypto_Pgp_encrypt" keyId="mule123" doc:name="EncryptingCSVfile"/>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="69c703e9-b623-4295-92c6-452102eb24bf" type="ANY">
+					<raise-error doc:name="Raise error" doc:id="8cb855c3-b117-4cf9-b2af-ddea91c97622" type="CUSTOM:INVALID ENCRYPTION KEY " description="Invalid Encryption key"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<file:write doc:name="Write" doc:id="e8830ba1-82bc-40bc-a07e-3345737b3987" config-ref="File_Config" path="D:\pgpEncryptData.txt"/>
+		<error-handler ref="error-handler" />
+	</flow>
+	<flow name="DecryptionFlow" doc:id="3abcd728-8183-4604-956b-676f125b4414" >
+		<scheduler doc:name="Scheduler" doc:id="ae36220d-5035-4811-b24a-fabba9974dd8" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="20" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<file:read doc:name="Read" doc:id="3dbe9d9c-79e5-4317-ab10-beb595cb7445" config-ref="File_Config" path="D:\pgpEncryptData.txt" outputMimeType="application/octet-stream" />
+		<crypto:pgp-decrypt doc:name="DecryptingCSVfile" doc:id="a60e3196-1e97-4191-b994-d8ccc91ba015" config-ref="Crypto_Pgp-decrypt"/>
+		<ee:transform doc:name="Transform Message" doc:id="6b30a5a8-4d65-462f-95a2-95c1357f49d9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+input payload application/octet-stream
+output application/csv
+---
+read(payload.^raw, "application/csv")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="76c34c41-ab66-490b-ab35-7a419a6fbb24" config-ref="File_Config" path="D:\pgpDecryptData.csv"/>
+		<error-handler ref="error-handler" />
+	
+</flow>
+</mule>
