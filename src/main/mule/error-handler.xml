@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="error-handler"
+		doc:id="a903e5e7-3491-4bc8-8111-c09261cae5be">
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="d3bd6275-df8b-4af7-b660-6c9088e4d054"
+			when="#[(error.errorType.identifier contains 'BAD_REQUEST') or (error.errorType.namespace == 'VALIDATION')]">
+      <ee:transform doc:name="ERR-400" doc:id="467edc2c-2647-41c9-a874-4ae969309f3a">
+        <ee:message>
+          <ee:set-payload resource="transformations/error400.dwl" />
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+			<flow-ref doc:name="error-handler-exit"
+				doc:id="462c6009-3470-49a7-9826-5c3f74970003"
+				name="error-handler-exit" />
+
+		</on-error-propagate>
+
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="543a4df6-033e-4fa6-bf7c-028f84ba6a9d"
+			when="#[error.errorType.identifier contains 'NOT_FOUND']">
+      <ee:transform doc:name="ERR-404" doc:id="be0464ec-896d-491d-a54e-669a0d7586e5">
+        <ee:message>
+          <ee:set-payload resource="transformations/error404.dwl" />
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+			<flow-ref doc:name="error-handler-exit"
+				doc:id="6eb01edd-c1a8-418e-b18b-a5621e528020"
+				name="error-handler-exit" />
+		</on-error-propagate>
+
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="481a7191-8364-40b3-93a9-2668fc79e9e6"
+			type="APIKIT:METHOD_NOT_ALLOWED">
+      <ee:transform doc:name="ERR-405" doc:id="3967e401-54e8-4372-833b-de5ef396e470">
+        <ee:message>
+          <ee:set-payload resource="transformations/error405.dwl" />
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus" ><![CDATA[405]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+			<flow-ref doc:name="error-handler-exit"
+				doc:id="ceb6977d-3d6c-4c83-aa8e-441dea9e38e6"
+				name="error-handler-exit" />
+		</on-error-propagate>
+
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="b8ebb963-1055-46b7-a1e8-9d9b32bb7e0c"
+			type="APIKIT:NOT_ACCEPTABLE">
+      <ee:transform doc:name="ERR-406" doc:id="2ec4d764-0fb8-4671-b1c9-c6fed511a099">
+        <ee:message>
+          <ee:set-payload resource="transformations/error406.dwl" />
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus" ><![CDATA[406]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+			<flow-ref doc:name="error-handler-exit"
+				doc:id="1d7ba7fe-51a1-407d-92e1-6117ab0b3c51"
+				name="error-handler-exit" />
+		</on-error-propagate>
+
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="fdde743d-d19e-4dff-a70e-deea085d292d"
+			type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+      <ee:transform doc:name="ERR-415" doc:id="7328b012-878f-4cfe-b8b9-6dd6852c48fa">
+        <ee:message>
+          <ee:set-payload resource="transformations/error415.dwl" />
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus" ><![CDATA[415]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+			<flow-ref doc:name="error-handler-exit"
+				doc:id="9f2f920b-f324-4156-85d7-01bd2b4ceee9"
+				name="error-handler-exit" />
+		</on-error-propagate>
+
+		<!-- <on-error-propagate enableNotifications="true" logException="true" 
+			doc:name="On Error Propagate" doc:id="446e6082-4e10-4f01-8a19-7f38d6017f74" 
+			when="#[(error.errorType.identifier contains 'ERROR_SELECTING') or (error.errorType.identifier 
+			contains 'ERROR_INSERTING') or (error.errorType.identifier contains 'ERROR_UPDATING') 
+			or (error.errorType.identifier contains 'ERROR_DELETING') ]"> <ee:transform 
+			doc:name="FWW-500" doc:id="b2a10ed1-5d54-4fdb-840b-3ba6082ca209" > <ee:message 
+			> <ee:set-payload ><![CDATA[%dw 2.0 output application/json -&#45;&#45; { 
+			"applicationErrorCode": vars.error.code default "FWW-500", "severity": vars.error.severity 
+			default '2', "errorDescription": if(vars.error.description?) // check for 
+			custom message from error variable vars.error.description else // or from 
+			a validation module error.description default 'Internal Error', "errorCode": 
+			500 } ]]></ee:set-payload> </ee:message> <ee:variables > <ee:set-variable 
+			variableName="httpStatus" ><![CDATA['500']]></ee:set-variable> </ee:variables> 
+			</ee:transform> <flow-ref doc:name="error-handler-exit" doc:id="1028728f-5cb7-4732-a8bb-aa8b283cd7eb" 
+			name="error-handler-exit"/> </on-error-propagate> -->
+
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="b799cb0a-0ea2-41e4-8920-fc0b0d3eb5f1"
+			type="APIKIT:NOT_IMPLEMENTED">
+      <ee:transform doc:name="ERR-501" doc:id="5ee5c662-ed1b-45bf-9e9a-2e52ab9b0353">
+        <ee:message>
+          <ee:set-payload resource="transformations/error501.dwl" />
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus" ><![CDATA[501]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+			<flow-ref doc:name="error-handler-exit"
+				doc:id="03388770-9612-4059-9eb3-e8c42efd5b31"
+				name="error-handler-exit" />
+		</on-error-propagate>
+		
+		
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="cbf80be3-bf8c-4443-a024-06fd0420e62b" when="#[error.errorType.identifier contains 'UNAUTHORIZED']">
+      <ee:transform doc:name="ERR-401" doc:id="8b2961e8-3fb4-450b-8a80-3dad85ed0a6d">
+        <ee:message>
+          <ee:set-payload resource="transformations/error401.dwl" />
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus" ><![CDATA[401]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+			<flow-ref doc:name="error-handler-exit"
+				doc:id="ca242399-7d44-4677-8a42-c90010da8a85"
+				name="error-handler-exit" />
+		</on-error-propagate>
+		
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="2e3b10d6-a539-4e67-800f-0f6449475cc7" when="#[error.errorType.identifier contains 'FORBIDDEN']">
+      <ee:transform doc:name="ERR-403" doc:id="b2c9363e-049f-4db6-bbf9-55982b757b4f">
+        <ee:message>
+          <ee:set-payload resource="transformations/error403.dwl" />
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus" ><![CDATA[403]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+			<flow-ref doc:name="error-handler-exit"
+				doc:id="94150e67-0d12-4622-944c-234b7367eae1"
+				name="error-handler-exit" />
+		</on-error-propagate>
+
+
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="7a17744b-3224-4c1b-8e4f-5f5cb8ad45b0" when="#[error.errorType.identifier contains 'INTERNAL_SERVER_ERROR']">
+      <ee:transform doc:name="ERR-500" doc:id="1e3bb787-1f12-4a51-bd92-a13e1e71e897">
+        <ee:message>
+          <ee:set-payload resource="transformations/error500.dwl" />
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+			<flow-ref doc:name="error-handler-exit"
+				doc:id="9e18b8b5-c914-4731-9e9c-dc86ec5eea16"
+				name="error-handler-exit" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0b7ed751-20e3-4569-8c32-b216e08031ae" type="ANY">
+			<ee:transform doc:name="Handling Mapping Errors" doc:id="45e61dbf-3a4d-4b11-bfca-e66f5ad33e61" >
+				<ee:message >
+					<ee:set-payload resource="transformations/error500.dwl" />
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="error-handler-exit" doc:id="8896e458-a65b-4c85-a1c1-12f3558705b4" name="error-handler-exit" />
+		</on-error-propagate>
+
+	</error-handler>
+
+	<sub-flow name="error-handler-exit"
+		doc:id="cdd894c6-fd30-4abf-92bd-ed675f0fc98b">
+		<logger level="ERROR" doc:name="Logger" doc:id="217f01c2-57b0-4068-abd4-c4947861650c" message="#[payload]"/>
+	</sub-flow>
+	
+	</mule>
+	
